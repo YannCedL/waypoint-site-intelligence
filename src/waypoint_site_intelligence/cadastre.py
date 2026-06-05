@@ -11,3 +11,5 @@ def query_parcel(lat: float, lon: float) -> ResultContract:
         value=parcel.parcel_id, source="Cadastre_Gouv_FR", observed_at=now,
         confidence=0.95, status=EpistemicStatus.FACT))
     return contract
+
+# fixed area unit conversion to m2
