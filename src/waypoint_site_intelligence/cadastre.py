@@ -14,19 +14,21 @@ def query_parcel(lat: float = 48.8566, lon: float = 2.3522) -> ResultContract:
     
     parcel = None
     try:
-        r = httpx.get(CADASTRE_API_URL, params={"lon": lon, "lat": lat}, timeout=6.0)
+        import json
+        geom_param = json.dumps({"type": "Point", "coordinates": [lon, lat]})
+        r = httpx.get(CADASTRE_API_URL, params={"geom": geom_param}, timeout=8.0)
         if r.status_code == 200:
             features = r.json().get("features", [])
             if features:
                 props = features[0].get("properties", {})
-                parcel_id = props.get("id") or f"{props.get('code_insee')}{props.get('section')}{props.get('numero')}"
+                parcel_id = props.get("idu") or props.get("id") or f"{props.get('code_insee', '')}{props.get('section', '')}{props.get('numero', '')}"
                 parcel = ParcelInfo(
-                    parcel_id=parcel_id,
-                    section=props.get("section"),
-                    numero=props.get("numero"),
+                    parcel_id=str(parcel_id),
+                    section=str(props.get("section", "")),
+                    numero=str(props.get("numero", "")),
                     area_m2=float(props.get("contenance", 0)),
-                    commune=props.get("nom_com"),
-                    code_insee=props.get("code_insee"),
+                    commune=str(props.get("nom_com", "France")),
+                    code_insee=str(props.get("code_insee", "")),
                     owner_type="Propriété Privée / Personne Morale"
                 )
     except Exception:
